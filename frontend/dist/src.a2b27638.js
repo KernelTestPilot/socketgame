@@ -42328,7 +42328,7 @@ exports.filters = filters;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.player = void 0;
+exports.Player = void 0;
 var PIXI = _interopRequireWildcard(require("pixi.js"));
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -42345,17 +42345,17 @@ function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) ===
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-var player = /*#__PURE__*/function (_PIXI$Graphics) {
-  _inherits(player, _PIXI$Graphics);
-  var _super = _createSuper(player);
-  function player() {
+var Player = /*#__PURE__*/function (_PIXI$Graphics) {
+  _inherits(Player, _PIXI$Graphics);
+  var _super = _createSuper(Player);
+  function Player() {
     var _this;
     var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 20;
     var color = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0xFF0000;
     var health = arguments.length > 2 ? arguments[2] : undefined;
     var level = arguments.length > 3 ? arguments[3] : undefined;
     var name = arguments.length > 4 ? arguments[4] : undefined;
-    _classCallCheck(this, player);
+    _classCallCheck(this, Player);
     _this = _super.call(this);
     _this.radius = radius;
     _this.health = health;
@@ -42364,19 +42364,77 @@ var player = /*#__PURE__*/function (_PIXI$Graphics) {
     _this.beginFill(color);
     _this.drawCircle(0, 0, radius);
     _this.endFill();
+
+    // Set initial velocity values
+    _this.dx = 0;
+    _this.dy = 0;
     return _this;
   }
-  _createClass(player, [{
+  _createClass(Player, [{
     key: "move",
     value: function move() {
       this.x += this.dx;
       this.y += this.dy;
     }
   }]);
-  return player;
+  return Player;
 }(PIXI.Graphics);
-exports.player = player;
-},{"pixi.js":"node_modules/pixi.js/lib/pixi.es.js"}],"node_modules/engine.io-parser/build/esm/commons.js":[function(require,module,exports) {
+exports.Player = Player;
+},{"pixi.js":"node_modules/pixi.js/lib/pixi.es.js"}],"src/gameController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.GameController = void 0;
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
+function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+var GameController = /*#__PURE__*/function () {
+  function GameController(player) {
+    _classCallCheck(this, GameController);
+    this.player = player;
+    this.keys = {};
+    window.addEventListener("keydown", this.handleKeyDown.bind(this));
+    window.addEventListener("keyup", this.handleKeyUp.bind(this));
+  }
+  _createClass(GameController, [{
+    key: "handleKeyDown",
+    value: function handleKeyDown(event) {
+      this.keys[event.key] = true;
+    }
+  }, {
+    key: "handleKeyUp",
+    value: function handleKeyUp(event) {
+      this.keys[event.key] = false;
+    }
+  }, {
+    key: "update",
+    value: function update() {
+      if (this.keys["ArrowLeft"]) {
+        this.player.dx = -5;
+        console.log(this.player.dx);
+      } else if (this.keys["ArrowRight"]) {
+        this.player.dx = 5;
+      } else {
+        this.player.dx = 0;
+      }
+      if (this.keys["ArrowUp"]) {
+        this.player.dy = -5;
+      } else if (this.keys["ArrowDown"]) {
+        this.player.dy = 5;
+      } else {
+        this.player.dy = 0;
+      }
+    }
+  }]);
+  return GameController;
+}();
+exports.GameController = GameController;
+},{}],"node_modules/engine.io-parser/build/esm/commons.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48245,6 +48303,7 @@ Object.assign(lookup, {
 require("./styles.css");
 var PIXI = _interopRequireWildcard(require("pixi.js"));
 var _playerClass = require("./playerClass");
+var _gameController = require("./gameController");
 var _socket = _interopRequireDefault(require("socket.io-client"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -48256,6 +48315,18 @@ var app = new PIXI.Application({
   backgroundColor: 0x1099bb,
   resolution: window.devicePixelRatio || 1
 });
+document.body.appendChild(app.view);
+var newPlayer = new _playerClass.Player(100, 1, "OSKAR");
+var stage = app.stage;
+var gc = new _gameController.GameController(newPlayer);
+app.stage.addChild(newPlayer);
+function gameLoop() {
+  gc.update();
+  newPlayer.move();
+  app.renderer.render(stage);
+  requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
 var sockets = {
   sockets: null,
   socket: (0, _socket.default)('http://localhost:5000/', {
@@ -48282,8 +48353,7 @@ currentPlayers.forEach(function (player) {
   app.stage.addChild(player);
 });
 sockets.init();
-document.body.appendChild(app.view);
-},{"./styles.css":"src/styles.css","pixi.js":"node_modules/pixi.js/lib/pixi.es.js","./playerClass":"src/playerClass.js","socket.io-client":"node_modules/socket.io-client/build/esm/index.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./styles.css":"src/styles.css","pixi.js":"node_modules/pixi.js/lib/pixi.es.js","./playerClass":"src/playerClass.js","./gameController":"src/gameController.js","socket.io-client":"node_modules/socket.io-client/build/esm/index.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -48308,7 +48378,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53016" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63314" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

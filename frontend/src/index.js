@@ -1,7 +1,9 @@
 import "./styles.css";
 import * as PIXI from "pixi.js";
-import { player } from "./playerClass";
+import { Player } from "./playerClass";
+import { GameController } from "./gameController";
 import io from 'socket.io-client';
+
 
 let currentPlayers = [];
 
@@ -11,6 +13,25 @@ let currentPlayers = [];
     backgroundColor: 0x1099bb,
     resolution: window.devicePixelRatio || 1,
   });
+  document.body.appendChild(app.view);
+
+  const newPlayer =  new Player(100,1,"OSKAR");
+  const stage = app.stage;
+
+  const gc = new GameController(newPlayer);
+  app.stage.addChild(newPlayer);
+
+
+function gameLoop(){
+  gc.update();
+  newPlayer.move();
+  app.renderer.render(stage);
+  requestAnimationFrame(gameLoop);
+
+}
+requestAnimationFrame(gameLoop);
+
+
 
 const sockets = {
   sockets: null,
@@ -41,5 +62,4 @@ currentPlayers.forEach(player => {
 });
 
 sockets.init();
-  document.body.appendChild(app.view);
 
