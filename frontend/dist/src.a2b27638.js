@@ -48308,7 +48308,11 @@ var _socket = _interopRequireDefault(require("socket.io-client"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
-var currentPlayers = [];
+var Game = {
+  update: {},
+  actorData: {},
+  player: {}
+};
 var app = new PIXI.Application({
   width: 800,
   height: 600,
@@ -48320,6 +48324,14 @@ var newPlayer = new _playerClass.Player(100, 1, "OSKAR");
 var stage = app.stage;
 var gc = new _gameController.GameController(newPlayer);
 app.stage.addChild(newPlayer);
+var drawMap = function drawMap() {
+  console.log(Game);
+  for (var i = 0; i < Game.update.length; i++) {
+    var _newPlayer = new _playerClass.Player(100, 1, "OSKAR");
+    app.stage.addChild(_newPlayer);
+    console.log("teststs");
+  }
+};
 function gameLoop() {
   gc.update();
   newPlayer.move();
@@ -48328,11 +48340,11 @@ function gameLoop() {
 }
 requestAnimationFrame(gameLoop);
 var sockets = {
-  sockets: null,
-  socket: (0, _socket.default)('http://localhost:5000/', {
-    transports: ['websocket']
-  }),
+  socket: null,
   init: function init() {
+    this.socket = (0, _socket.default)('http://localhost:5000/', {
+      transports: ['websocket']
+    });
     this.registerConnection();
   },
   registerConnection: function registerConnection() {
@@ -48340,18 +48352,19 @@ var sockets = {
     var connectedPromise = new Promise(function (resolve) {
       _this.socket.on('connect', function () {
         console.log('client connected to server');
+        drawMap();
         resolve();
       });
     });
     connectedPromise.then(function () {
-      //DO updates here
+      var syncUpdate = function syncUpdate(update) {
+        return Game.update = update;
+      };
+      _this.socket.on('gameUpdate', syncUpdate);
+      drawMap();
     });
   }
 };
-currentPlayers.forEach(function (player) {
-  console.log(currentPlayers);
-  app.stage.addChild(player);
-});
 sockets.init();
 },{"./styles.css":"src/styles.css","pixi.js":"node_modules/pixi.js/lib/pixi.es.js","./playerClass":"src/playerClass.js","./gameController":"src/gameController.js","socket.io-client":"node_modules/socket.io-client/build/esm/index.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -48378,7 +48391,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63314" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62557" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

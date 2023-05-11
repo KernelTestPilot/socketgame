@@ -5,8 +5,11 @@ import { GameController } from "./gameController";
 import io from 'socket.io-client';
 
 
-let currentPlayers = [];
-
+const Game = {
+  update: {},
+  actorData: {},
+  player: {}
+}
   const app = new PIXI.Application({
     width: 800,
     height: 600,
@@ -22,7 +25,18 @@ let currentPlayers = [];
   app.stage.addChild(newPlayer);
 
 
+  const drawMap = () => {
+    console.log(Game)
+    for(let i = 0; i < Game.update.length; i++){
+      const newPlayer =  new Player(100,1,"OSKAR");
+      app.stage.addChild(newPlayer);
+
+      console.log("teststs")
+  
+    }
+}
 function gameLoop(){
+
   gc.update();
   newPlayer.move();
   app.renderer.render(stage);
@@ -34,32 +48,31 @@ requestAnimationFrame(gameLoop);
 
 
 const sockets = {
-  sockets: null,
-  socket: io('http://localhost:5000/', { transports: ['websocket'] }),
+  socket: null,
 
   init() {
-      this.registerConnection();
+    this.socket = io('http://localhost:5000/', { transports: ['websocket'] });
+    this.registerConnection();
   },
 
   registerConnection() {
       const connectedPromise = new Promise(resolve => {
           this.socket.on('connect', () => {
               console.log('client connected to server');
+              drawMap();
               resolve();
           });
       });
 
       connectedPromise.then(() => {
-       //DO updates here
+        const syncUpdate = (update) => Game.update = update;
+        this.socket.on('gameUpdate', syncUpdate);
+        drawMap();
       });
  
   },
 };
 
-currentPlayers.forEach(player => {
-  console.log(currentPlayers)
-  app.stage.addChild(player);
-});
 
 sockets.init();
 

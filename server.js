@@ -18,10 +18,56 @@ const io = new Server(server, {
   },
 });
 
+
+const gameLogic = {
+  sockets: {},
+  players: {},
+  coins: [],
+
+  start () {
+    setInterval(this.update.bind(this), 1000 / 60);
+},
+
+  joinGame(socket) {
+      this.sockets[socket.id] = socket;
+      this.players[socket.id] = {
+          dx: 0, dy: 0, x: 10, y: 10,
+          socketId: socket.id,
+      };
+      console.log(this.players)
+  },
+  updatePlayer({ dx, dy }, socketId) {
+    const player = this.players[socketId];
+    player.dx = dx;
+    player.dy = dy;
+},
+  update() {
+  
+    Object.values(this.players).forEach(player => {
+        player.x += player.dx;
+        player.y += player.dy;
+    });
+
+    Object.values(this.sockets).forEach(socket => {
+        socket.emit('gameUpdate', this.currentState());
+    });
+  },
+  currentState() {
+    return {
+        players: this.players,
+    };
+},
+
+
+}
+
 io.on("connection", (socket) => {
+  gameLogic.joinGame(socket)
     console.log('player connected', socket.id);
   });
 
+  
+gameLogic.start();
 
 app.get('/', (req, res) => {
 
