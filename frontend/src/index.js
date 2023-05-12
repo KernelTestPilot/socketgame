@@ -5,11 +5,6 @@ import { GameController } from "./gameController";
 import io from 'socket.io-client';
 
 
-const Game = {
-  update: {},
-  actorData: {},
-  player: {}
-}
   const app = new PIXI.Application({
     width: 800,
     height: 600,
@@ -25,25 +20,35 @@ const Game = {
   app.stage.addChild(newPlayer);
 
 
-  const drawMap = () => {
-    console.log(Game)
-    for(let i = 0; i < Game.update.length; i++){
-      const newPlayer =  new Player(100,1,"OSKAR");
-      app.stage.addChild(newPlayer);
+ 
 
-      console.log("teststs")
-  
-    }
-}
-function gameLoop(){
 
+
+const gameLoop ={
+  gameUpdate: null,
+  match: null,
+
+  start() {
+    requestAnimationFrame(this.render.bind(this));
+},
+render() {
+  const update = this.gameUpdate;
+  for (let key in update) {
+    const playerData = update[key];
+    const newPlayer = new Player(playerData.x, playerData.y, playerData.name);
+    app.stage.addChild(newPlayer)
+
+  }
+console.log(update)
   gc.update();
   newPlayer.move();
   app.renderer.render(stage);
-  requestAnimationFrame(gameLoop);
+  requestAnimationFrame(this.render.bind(this));
+},
+
 
 }
-requestAnimationFrame(gameLoop);
+
 
 
 
@@ -52,22 +57,24 @@ const sockets = {
 
   init() {
     this.socket = io('http://localhost:5000/', { transports: ['websocket'] });
+   
     this.registerConnection();
+    //this.socket.onAny((event, ...args) => {
+     // console.log(event, args);});
   },
 
   registerConnection() {
       const connectedPromise = new Promise(resolve => {
           this.socket.on('connect', () => {
               console.log('client connected to server');
-              drawMap();
               resolve();
           });
       });
 
       connectedPromise.then(() => {
-        const syncUpdate = (update) => Game.update = update;
+      
+        const syncUpdate = (update) => gameLoop.gameUpdate = update;
         this.socket.on('gameUpdate', syncUpdate);
-        drawMap();
       });
  
   },
@@ -75,4 +82,5 @@ const sockets = {
 
 
 sockets.init();
-
+gameLoop.start();
+//requestAnimationFrame(gameLoop);

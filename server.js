@@ -17,7 +17,18 @@ const io = new Server(server, {
     methods: ['GET', 'POST'],
   },
 });
+app.get('/', (req, res) => {
 
+
+  //testar så servern funkar, körs på 5000
+  res.send('Hello world');
+});
+
+
+server.listen(5000, () => {
+  console.log(`Server is up and running on 5000 ...`);
+  
+});
 
 const gameLogic = {
   sockets: {},
@@ -61,23 +72,11 @@ const gameLogic = {
 
 }
 
+
 io.on("connection", (socket) => {
   gameLogic.joinGame(socket)
     console.log('player connected', socket.id);
   });
-
-  
-gameLogic.start();
-
-app.get('/', (req, res) => {
-
-
-    //testar så servern funkar, körs på 5000
-    res.send('Hello world');
-  });
+  gameLogic.start();
   
 
-  server.listen(5000, () => {
-    console.log(`Server is up and running on 5000 ...`);
-    
-  });

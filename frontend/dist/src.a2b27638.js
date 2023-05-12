@@ -48308,11 +48308,6 @@ var _socket = _interopRequireDefault(require("socket.io-client"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
-var Game = {
-  update: {},
-  actorData: {},
-  player: {}
-};
 var app = new PIXI.Application({
   width: 800,
   height: 600,
@@ -48324,21 +48319,26 @@ var newPlayer = new _playerClass.Player(100, 1, "OSKAR");
 var stage = app.stage;
 var gc = new _gameController.GameController(newPlayer);
 app.stage.addChild(newPlayer);
-var drawMap = function drawMap() {
-  console.log(Game);
-  for (var i = 0; i < Game.update.length; i++) {
-    var _newPlayer = new _playerClass.Player(100, 1, "OSKAR");
-    app.stage.addChild(_newPlayer);
-    console.log("teststs");
+var gameLoop = {
+  gameUpdate: null,
+  match: null,
+  start: function start() {
+    requestAnimationFrame(this.render.bind(this));
+  },
+  render: function render() {
+    var update = this.gameUpdate;
+    for (var key in update) {
+      var playerData = update[key];
+      var _newPlayer = new _playerClass.Player(playerData.x, playerData.y, playerData.name);
+      app.stage.addChild(_newPlayer);
+    }
+    console.log(update);
+    gc.update();
+    newPlayer.move();
+    app.renderer.render(stage);
+    requestAnimationFrame(this.render.bind(this));
   }
 };
-function gameLoop() {
-  gc.update();
-  newPlayer.move();
-  app.renderer.render(stage);
-  requestAnimationFrame(gameLoop);
-}
-requestAnimationFrame(gameLoop);
 var sockets = {
   socket: null,
   init: function init() {
@@ -48346,26 +48346,28 @@ var sockets = {
       transports: ['websocket']
     });
     this.registerConnection();
+    //this.socket.onAny((event, ...args) => {
+    // console.log(event, args);});
   },
   registerConnection: function registerConnection() {
     var _this = this;
     var connectedPromise = new Promise(function (resolve) {
       _this.socket.on('connect', function () {
         console.log('client connected to server');
-        drawMap();
         resolve();
       });
     });
     connectedPromise.then(function () {
       var syncUpdate = function syncUpdate(update) {
-        return Game.update = update;
+        return gameLoop.gameUpdate = update;
       };
       _this.socket.on('gameUpdate', syncUpdate);
-      drawMap();
     });
   }
 };
 sockets.init();
+gameLoop.start();
+//requestAnimationFrame(gameLoop);
 },{"./styles.css":"src/styles.css","pixi.js":"node_modules/pixi.js/lib/pixi.es.js","./playerClass":"src/playerClass.js","./gameController":"src/gameController.js","socket.io-client":"node_modules/socket.io-client/build/esm/index.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -48391,7 +48393,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62557" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52837" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
