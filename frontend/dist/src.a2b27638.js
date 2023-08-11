@@ -42348,24 +42348,19 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 var Player = /*#__PURE__*/function (_PIXI$Graphics) {
   _inherits(Player, _PIXI$Graphics);
   var _super = _createSuper(Player);
-  function Player() {
+  function Player(socketId, x, y) {
     var _this;
-    var radius = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 20;
-    var color = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0xFF0000;
-    var health = arguments.length > 2 ? arguments[2] : undefined;
-    var level = arguments.length > 3 ? arguments[3] : undefined;
-    var name = arguments.length > 4 ? arguments[4] : undefined;
     _classCallCheck(this, Player);
     _this = _super.call(this);
-    _this.radius = radius;
-    _this.health = health;
-    _this.level = level;
-    _this.name = name;
-    _this.beginFill(color);
-    _this.drawCircle(0, 0, radius);
+    _this.radius = 20;
+    _this.socketId = socketId;
+    _this.position.set(x, y); // Set initial position
+
+    _this.beginFill(0xFF0000);
+    _this.drawCircle(0, 0, _this.radius); // Center of the circle is (0, 0)
     _this.endFill();
 
-    // Set initial velocity values
+    // Initial velocity
     _this.dx = 0;
     _this.dy = 0;
     return _this;
@@ -42373,8 +42368,15 @@ var Player = /*#__PURE__*/function (_PIXI$Graphics) {
   _createClass(Player, [{
     key: "move",
     value: function move() {
+      // Update position based on velocity
       this.x += this.dx;
       this.y += this.dy;
+    }
+  }, {
+    key: "setVelocity",
+    value: function setVelocity(dx, dy) {
+      this.dx = dx;
+      this.dy = dy;
     }
   }]);
   return Player;
@@ -42394,9 +42396,12 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
 function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 var GameController = /*#__PURE__*/function () {
-  function GameController(player) {
+  function GameController(sockets) {
     _classCallCheck(this, GameController);
-    this.player = player;
+    console.log(sockets);
+    this.socket = sockets;
+    this.dx = 10;
+    this.dy = 10;
     this.keys = {};
     window.addEventListener("keydown", this.handleKeyDown.bind(this));
     window.addEventListener("keyup", this.handleKeyUp.bind(this));
@@ -42415,19 +42420,42 @@ var GameController = /*#__PURE__*/function () {
     key: "update",
     value: function update() {
       if (this.keys["ArrowLeft"]) {
-        this.player.dx = -5;
-        console.log(this.player.dx);
+        this.dx = -5;
+        this.socket.socket.emit('playerMove', {
+          dx: this.dx,
+          dy: this.dy
+        });
       } else if (this.keys["ArrowRight"]) {
-        this.player.dx = 5;
+        this.dx = 5;
+        this.socket.socket.emit('playerMove', {
+          dx: this.dx,
+          dy: this.dy
+        });
       } else {
-        this.player.dx = 0;
+        this.dx = 0;
+        this.socket.socket.emit('playerMove', {
+          dx: this.dx,
+          dy: this.dy
+        });
       }
       if (this.keys["ArrowUp"]) {
-        this.player.dy = -5;
+        this.dy = -5;
+        this.socket.socket.emit('playerMove', {
+          dx: this.dx,
+          dy: this.dy
+        });
       } else if (this.keys["ArrowDown"]) {
-        this.player.dy = 5;
+        this.dy = 5;
+        this.socket.socket.emit('playerMove', {
+          dx: this.dx,
+          dy: this.dy
+        });
       } else {
-        this.player.dy = 0;
+        this.dy = 0;
+        this.socket.socket.emit('playerMove', {
+          dx: this.dx,
+          dy: this.dy
+        });
       }
     }
   }]);
@@ -48315,27 +48343,47 @@ var app = new PIXI.Application({
   resolution: window.devicePixelRatio || 1
 });
 document.body.appendChild(app.view);
-var newPlayer = new _playerClass.Player(100, 1, "OSKAR");
-var stage = app.stage;
-var gc = new _gameController.GameController(newPlayer);
-app.stage.addChild(newPlayer);
 var gameLoop = {
   gameUpdate: null,
   match: null,
+  players: [],
   start: function start() {
+    var update = this.gameUpdate;
     requestAnimationFrame(this.render.bind(this));
+    app.stage.removeChildren(); // Clear the stage before drawing players
   },
   render: function render() {
-    var update = this.gameUpdate;
-    for (var key in update) {
-      var playerData = update[key];
-      var _newPlayer = new _playerClass.Player(playerData.x, playerData.y, playerData.name);
-      app.stage.addChild(_newPlayer);
-    }
-    console.log(update);
+    var _this = this;
+    // Make function to check if new players join app.stage.removeChildren(); // Clear the stage before drawing players
+
     gc.update();
-    newPlayer.move();
-    app.renderer.render(stage);
+    var update = this.gameUpdate;
+    if (update) {
+      Object.values(update.players).forEach(function (playerData) {
+        // Get player's current position and velocity
+        var x = playerData.x,
+          y = playerData.y,
+          dx = playerData.dx,
+          dy = playerData.dy;
+
+        // Create or retrieve the player instance
+        var player = _this.players[playerData.socketId];
+        if (!player) {
+          player = new _playerClass.Player(playerData.socketId, x, y);
+          _this.players[playerData.socketId] = player;
+
+          //app.stage.removeChildren(); // Clear the stage before drawing players
+
+          app.stage.addChild(player);
+        }
+
+        // Update player's position and velocity
+        player.setVelocity(dx, dy);
+        player.move(); // Update player's position based on velocity
+      });
+    }
+
+    app.renderer.render(app.stage);
     requestAnimationFrame(this.render.bind(this));
   }
 };
@@ -48350,9 +48398,9 @@ var sockets = {
     // console.log(event, args);});
   },
   registerConnection: function registerConnection() {
-    var _this = this;
+    var _this2 = this;
     var connectedPromise = new Promise(function (resolve) {
-      _this.socket.on('connect', function () {
+      _this2.socket.on('connect', function () {
         console.log('client connected to server');
         resolve();
       });
@@ -48361,12 +48409,14 @@ var sockets = {
       var syncUpdate = function syncUpdate(update) {
         return gameLoop.gameUpdate = update;
       };
-      _this.socket.on('gameUpdate', syncUpdate);
+      _this2.socket.on('gameUpdate', syncUpdate);
     });
   }
 };
 sockets.init();
+var gc = new _gameController.GameController(sockets);
 gameLoop.start();
+
 //requestAnimationFrame(gameLoop);
 },{"./styles.css":"src/styles.css","pixi.js":"node_modules/pixi.js/lib/pixi.es.js","./playerClass":"src/playerClass.js","./gameController":"src/gameController.js","socket.io-client":"node_modules/socket.io-client/build/esm/index.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -48393,7 +48443,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52837" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52200" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

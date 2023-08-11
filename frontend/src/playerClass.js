@@ -1,26 +1,29 @@
 import * as PIXI from "pixi.js";
 
+export class Player extends PIXI.Graphics {
+  constructor(socketId, x, y) {
+    super();
+    this.radius = 20;
+    this.socketId = socketId;
+    this.position.set(x, y); // Set initial position
 
-export class Player extends PIXI.Graphics{
-    constructor(radius=20,color=0xFF0000, health, level, name) {
-        super();
-        this.radius = radius;
-        this.health = health;
-        this.level = level;
-        this.name = name;
-        this.beginFill(color);
-        this.drawCircle(0,0,radius);
-		    this.endFill();
+    this.beginFill(0xFF0000);
+    this.drawCircle(0, 0, this.radius); // Center of the circle is (0, 0)
+    this.endFill();
 
-     // Set initial velocity values
-     this.dx = 0;
-     this.dy = 0;
+    // Initial velocity
+    this.dx = 0;
+    this.dy = 0;
   }
-    
-    move(){
-		this.x += this.dx;
-		this.y += this.dy;
-	}
 
+  move() {
+    // Update position based on velocity
+    this.x += this.dx;
+    this.y += this.dy;
   }
-  
+
+  setVelocity(dx, dy) {
+    this.dx = dx;
+    this.dy = dy;
+  }
+}

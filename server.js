@@ -57,11 +57,16 @@ const gameLogic = {
     Object.values(this.players).forEach(player => {
         player.x += player.dx;
         player.y += player.dy;
+        console.log(player.x)
     });
 
     Object.values(this.sockets).forEach(socket => {
         socket.emit('gameUpdate', this.currentState());
     });
+  },
+    removePlayer(sockeID) {
+      delete this.sockets[sockeID];
+      delete this.players[sockeID];
   },
   currentState() {
     return {
@@ -76,7 +81,17 @@ const gameLogic = {
 io.on("connection", (socket) => {
   gameLogic.joinGame(socket)
     console.log('player connected', socket.id);
+    socket.on('playerMove', (update) => {
+      console.log(update)
+      gameLogic.updatePlayer(update, socket.id);
   });
+    socket.on('disconnect', () => {
+      console.log("disconnected",socket.id)
+      gameLogic.removePlayer(socket.id)
+      socket.disconnect();
+    });
+  });
+  
   gameLogic.start();
   
 

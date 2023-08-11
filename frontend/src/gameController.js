@@ -1,6 +1,9 @@
 export class GameController {
-    constructor(player) {
-      this.player = player;
+    constructor(sockets) {
+      console.log(sockets)
+      this.socket = sockets;
+      this.dx = 10;
+      this.dy = 10;
       this.keys = {};
       window.addEventListener("keydown", this.handleKeyDown.bind(this));
       window.addEventListener("keyup", this.handleKeyUp.bind(this));
@@ -16,20 +19,31 @@ export class GameController {
   
     update() {
       if (this.keys["ArrowLeft"]) {
-        this.player.dx = -5;
-        console.log(this.player.dx)
+        this.dx = -5;
+        this.socket.socket.emit('playerMove', { dx: this.dx, dy: this.dy });
+        
+
       } else if (this.keys["ArrowRight"]) {
-        this.player.dx = 5;
+        this.dx = 5;
+        this.socket.socket.emit('playerMove', { dx: this.dx, dy: this.dy });
       } else {
-        this.player.dx = 0;
+        this.dx = 0;
+        this.socket.socket.emit('playerMove', { dx: this.dx, dy: this.dy });
+
       }
   
       if (this.keys["ArrowUp"]) {
-        this.player.dy = -5;
+        this.dy = -5;
+        this.socket.socket.emit('playerMove', { dx: this.dx, dy: this.dy });
+
       } else if (this.keys["ArrowDown"]) {
-        this.player.dy = 5;
+        this.dy = 5;
+        this.socket.socket.emit('playerMove', { dx: this.dx, dy: this.dy });
+
       } else {
-        this.player.dy = 0;
+        this.dy = 0;
+        this.socket.socket.emit('playerMove', { dx: this.dx, dy: this.dy });
+
       }
     }
   }

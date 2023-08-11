@@ -13,42 +13,52 @@ import io from 'socket.io-client';
   });
   document.body.appendChild(app.view);
 
-  const newPlayer =  new Player(100,1,"OSKAR");
-  const stage = app.stage;
-
-  const gc = new GameController(newPlayer);
-  app.stage.addChild(newPlayer);
-
-
- 
-
-
-
 const gameLoop ={
   gameUpdate: null,
   match: null,
+  players: [],
 
   start() {
-    requestAnimationFrame(this.render.bind(this));
+      const update = this.gameUpdate;
+      requestAnimationFrame(this.render.bind(this));
+      app.stage.removeChildren(); // Clear the stage before drawing players
+
 },
 render() {
-  const update = this.gameUpdate;
-  for (let key in update) {
-    const playerData = update[key];
-    const newPlayer = new Player(playerData.x, playerData.y, playerData.name);
-    app.stage.addChild(newPlayer)
+  // Make function to check if new players join app.stage.removeChildren(); // Clear the stage before drawing players
 
-  }
-console.log(update)
   gc.update();
-  newPlayer.move();
-  app.renderer.render(stage);
+
+  const update = this.gameUpdate;
+
+  if (update) {
+    Object.values(update.players).forEach(playerData => {
+      // Get player's current position and velocity
+      const { x, y, dx, dy } = playerData;
+
+      // Create or retrieve the player instance
+      let player = this.players[playerData.socketId];
+      if (!player) {
+        player = new Player(playerData.socketId, x, y);
+        this.players[playerData.socketId] = player;
+
+        //app.stage.removeChildren(); // Clear the stage before drawing players
+
+        app.stage.addChild(player);
+        
+      }
+
+      // Update player's position and velocity
+      player.setVelocity(dx, dy);
+      player.move(); // Update player's position based on velocity
+    });
+  }
+
+  app.renderer.render(app.stage);
   requestAnimationFrame(this.render.bind(this));
-},
-
-
+  
 }
-
+}
 
 
 
@@ -56,8 +66,8 @@ const sockets = {
   socket: null,
 
   init() {
+
     this.socket = io('http://localhost:5000/', { transports: ['websocket'] });
-   
     this.registerConnection();
     //this.socket.onAny((event, ...args) => {
      // console.log(event, args);});
@@ -72,9 +82,11 @@ const sockets = {
       });
 
       connectedPromise.then(() => {
-      
-        const syncUpdate = (update) => gameLoop.gameUpdate = update;
+        
+        const syncUpdate = (update) =>
+        gameLoop.gameUpdate = update;
         this.socket.on('gameUpdate', syncUpdate);
+
       });
  
   },
@@ -82,5 +94,7 @@ const sockets = {
 
 
 sockets.init();
+const gc = new GameController(sockets);
 gameLoop.start();
+
 //requestAnimationFrame(gameLoop);
