@@ -42389,6 +42389,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.GameController = void 0;
+var _playerClass = require("./playerClass");
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
@@ -42402,6 +42403,8 @@ var GameController = /*#__PURE__*/function () {
     this.socket = sockets;
     this.dx = 10;
     this.dy = 10;
+    this.bulletdx = 0;
+    this.bulletdy = 0;
     this.keys = {};
     window.addEventListener("keydown", this.handleKeyDown.bind(this));
     window.addEventListener("keyup", this.handleKeyUp.bind(this));
@@ -42418,7 +42421,7 @@ var GameController = /*#__PURE__*/function () {
     }
   }, {
     key: "update",
-    value: function update() {
+    value: function update(player) {
       if (this.keys["ArrowLeft"]) {
         this.dx = -5;
         this.socket.socket.emit('playerMove', {
@@ -42457,12 +42460,23 @@ var GameController = /*#__PURE__*/function () {
           dy: this.dy
         });
       }
+      if (this.keys["a"]) {
+        this.bulletdx = player.x;
+        this.bulletdy = player.y;
+        this.socket.socket.emit('playerShoot', {
+          bulletdx: this.bulletdx,
+          bulletdy: this.bulletdy
+        });
+      } else {
+        this.bulletdx = 0;
+        this.bulletdy = 0;
+      }
     }
   }]);
   return GameController;
 }();
 exports.GameController = GameController;
-},{}],"node_modules/engine.io-parser/build/esm/commons.js":[function(require,module,exports) {
+},{"./playerClass":"src/playerClass.js"}],"node_modules/engine.io-parser/build/esm/commons.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -48347,6 +48361,7 @@ var gameLoop = {
   gameUpdate: null,
   match: null,
   players: [],
+  bullets: [],
   start: function start() {
     var update = this.gameUpdate;
     requestAnimationFrame(this.render.bind(this));
@@ -48356,7 +48371,6 @@ var gameLoop = {
     var _this = this;
     // Make function to check if new players join app.stage.removeChildren(); // Clear the stage before drawing players
 
-    gc.update();
     var update = this.gameUpdate;
     if (update) {
       Object.values(update.players).forEach(function (playerData) {
@@ -48365,9 +48379,11 @@ var gameLoop = {
           y = playerData.y,
           dx = playerData.dx,
           dy = playerData.dy;
+        console.log(update);
 
         // Create or retrieve the player instance
         var player = _this.players[playerData.socketId];
+        gc.update(player);
         if (!player) {
           player = new _playerClass.Player(playerData.socketId, x, y);
           _this.players[playerData.socketId] = player;
@@ -48376,6 +48392,7 @@ var gameLoop = {
 
           app.stage.addChild(player);
         }
+        Object.values(update.bullets).forEach(function (bulletData) {});
 
         // Update player's position and velocity
         player.setVelocity(dx, dy);
@@ -48443,7 +48460,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52200" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63108" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

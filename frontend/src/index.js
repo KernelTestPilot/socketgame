@@ -17,6 +17,7 @@ const gameLoop ={
   gameUpdate: null,
   match: null,
   players: [],
+  bullets:[],
 
   start() {
       const update = this.gameUpdate;
@@ -27,7 +28,7 @@ const gameLoop ={
 render() {
   // Make function to check if new players join app.stage.removeChildren(); // Clear the stage before drawing players
 
-  gc.update();
+
 
   const update = this.gameUpdate;
 
@@ -35,9 +36,11 @@ render() {
     Object.values(update.players).forEach(playerData => {
       // Get player's current position and velocity
       const { x, y, dx, dy } = playerData;
+      console.log(update)
 
       // Create or retrieve the player instance
       let player = this.players[playerData.socketId];
+      gc.update(player);
       if (!player) {
         player = new Player(playerData.socketId, x, y);
         this.players[playerData.socketId] = player;
@@ -47,6 +50,10 @@ render() {
         app.stage.addChild(player);
         
       }
+      Object.values(update.bullets).forEach(bulletData => {
+          
+
+      })
 
       // Update player's position and velocity
       player.setVelocity(dx, dy);

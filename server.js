@@ -33,7 +33,7 @@ server.listen(5000, () => {
 const gameLogic = {
   sockets: {},
   players: {},
-  coins: [],
+  bullets: {},
 
   start () {
     setInterval(this.update.bind(this), 1000 / 60);
@@ -45,19 +45,34 @@ const gameLogic = {
           dx: 0, dy: 0, x: 10, y: 10,
           socketId: socket.id,
       };
-      console.log(this.players)
+    
   },
   updatePlayer({ dx, dy }, socketId) {
     const player = this.players[socketId];
     player.dx = dx;
     player.dy = dy;
 },
+createBullet(socketId) {
+  console.log("fire!")
+  const bulletId = socketId;
+  this.bullets[bulletId] = {
+    dx: 0, dy: 0, x: socketId.x, y: socketId.y,
+  };
+},
+updateBullet({ dx, dy }, bulletId) {
+  const bullet = this.bullets[bulletId];
+  bullet.dx = dx;
+  bullet.dy = dy;
+},
   update() {
-  
+
+    Object.values(this.bullets).forEach(bullet => {
+      bullet.x += bullet.dx;
+      bullet.y += bullet.dy;
+  });
     Object.values(this.players).forEach(player => {
         player.x += player.dx;
         player.y += player.dy;
-        console.log(player.x)
     });
 
     Object.values(this.sockets).forEach(socket => {
@@ -71,6 +86,7 @@ const gameLogic = {
   currentState() {
     return {
         players: this.players,
+        bullets: this.bullets,
     };
 },
 
@@ -82,8 +98,12 @@ io.on("connection", (socket) => {
   gameLogic.joinGame(socket)
     console.log('player connected', socket.id);
     socket.on('playerMove', (update) => {
-      console.log(update)
       gameLogic.updatePlayer(update, socket.id);
+      
+  });
+  socket.on('playerShoot', (update) => {
+    gameLogic.createBullet(socket.id)
+    gameLogic.updateBullet(update, socket.id);
   });
     socket.on('disconnect', () => {
       console.log("disconnected",socket.id)
